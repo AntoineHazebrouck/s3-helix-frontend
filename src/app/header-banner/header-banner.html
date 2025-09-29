@@ -1,0 +1,17 @@
+<header class="row justify-content-between align-items-center">
+	<div class="col">
+		<h1 style="margin: 0;">Twitter Wish</h1>
+	</div>
+
+	<div class="col-2">
+		@if ( isAuthenticated$ | async ) {
+		<button type="button" class="btn btn-danger" (click)="logout()">Logout</button>
+		}
+		@else {
+		<button type="button" class="btn btn-primary" (click)="login()">Login</button>
+		}
+	</div>
+
+	<hr>
+
+</header>

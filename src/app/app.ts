@@ -1,33 +1,15 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { Component, signal } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
-import { AuthModule, OidcSecurityService } from 'angular-auth-oidc-client';
-
-import { NgModule } from '@angular/core';
+import { AuthModule } from 'angular-auth-oidc-client';
+import { HeaderBanner } from './header-banner/header-banner';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, AuthModule],
+  imports: [RouterOutlet, AuthModule, CommonModule, HeaderBanner],
   templateUrl: './app.html',
-  styleUrl: './app.css'
+  styleUrl: './app.css',
 })
-export class App implements OnInit {
+export class App {
   protected readonly title = signal('s3-helix-frontend');
-
-  private readonly oidcSecurityService = inject(OidcSecurityService);
-
-  configuration$ = this.oidcSecurityService.getConfiguration();
-
-  userData$ = this.oidcSecurityService.userData$;
-
-  isAuthenticated = false;
-
-  async ngOnInit() {
-    this.oidcSecurityService.isAuthenticated$.subscribe(
-      ({ isAuthenticated }) => {
-        this.isAuthenticated = isAuthenticated;
-
-        console.warn('authenticated: ', isAuthenticated);
-      }
-    );
-  }
 }

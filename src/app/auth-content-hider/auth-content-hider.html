@@ -1,0 +1,13 @@
+@if ( isAuthenticated$ | async ) {
+<app-content></app-content>
+}
+@else {
+
+<div class="row align-items-center mt-5">
+	<div class="col-2 mx-auto text-center">
+		<h5>Please login</h5>
+		<button type="button" class="btn btn-primary" (click)="login()">Login</button>
+	</div>
+</div>
+
+}

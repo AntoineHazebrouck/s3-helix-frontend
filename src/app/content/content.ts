@@ -1,4 +1,5 @@
-import { Component, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
+import { Tweet } from '../../model/tweet';
 
 @Component({
   selector: 'app-content',
@@ -7,5 +8,8 @@ import { Component, OnInit } from '@angular/core';
   styleUrl: './content.css',
 })
 export class Content {
-  protected readonly tweets: string[] = ['Je fais caca', 'sqdsqdsqd', 'tototoaorrf'];
+  protected readonly tweets: Tweet[] = [
+    new Tweet('Antoine HAZEBROUCK', 'Je fais caca'),
+    new Tweet('Axel ELIAS', 'Tu fais caca'),
+  ];
 }

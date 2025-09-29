@@ -17,24 +17,11 @@ export class HeaderBanner implements OnInit {
   ngOnInit(): void {
     this.isAuthenticated$ = this.security.isAuthenticated$.pipe(
       map(({ isAuthenticated }) => {
-        console.log(isAuthenticated);
         return isAuthenticated;
       })
     );
 
-    this.security.checkAuth().subscribe(({ isAuthenticated, userData, accessToken }) => {
-      console.log('App authenticated', isAuthenticated);
-      // You can handle user data or token here if needed
-    });
-
-    // this.isAuthenticated$.
-
-    // this.isAuthenticated = this.security.authenticated().isAuthenticated;
-    // this.security.checkAuth().subscribe(({ isAuthenticated, userData }) => {
-    //   console.log(isAuthenticated);
-
-    //   this.isAuthenticated = isAuthenticated;
-    // });
+    this.security.checkAuth().subscribe();
   }
 
   login() {
@@ -42,6 +29,6 @@ export class HeaderBanner implements OnInit {
   }
 
   logout() {
-    this.security.logoff().subscribe((result) => console.log(result));
+    this.security.logoff().subscribe();
   }
 }

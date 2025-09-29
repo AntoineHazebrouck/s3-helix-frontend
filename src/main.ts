@@ -19,8 +19,12 @@ const appConfig: ApplicationConfig = {
     provideAuth({
       config: {
         authority: 'https://cognito-idp.eu-west-1.amazonaws.com/eu-west-1_Jl5Jdh54R',
-        redirectUrl: 'http://localhost:4200',
+        redirectUrl: window.location.origin,
         postLogoutRedirectUri: window.location.origin,
+        customParamsEndSessionRequest: {
+          client_id: '58tvolrl5imlvi1qpsa5h3rp5e',
+          logout_uri: window.location.origin,
+        },
         clientId: '58tvolrl5imlvi1qpsa5h3rp5e',
         scope: 'phone openid email',
         responseType: 'code',

@@ -13,15 +13,24 @@ export class HeaderBanner implements OnInit {
   private readonly security = inject(OidcSecurityService);
 
   isAuthenticated$!: Observable<boolean>;
+  // isAuthenticated2!: boolean;
 
   ngOnInit(): void {
-    this.isAuthenticated$ = this.security.isAuthenticated$.pipe(
+    // this.isAuthenticated$ = this.security.isAuthenticated$.pipe(
+    //   map(({ isAuthenticated }) => {
+    //     return isAuthenticated;
+    //   })
+    // );
+    this.isAuthenticated$ = this.security.checkAuth().pipe(
       map(({ isAuthenticated }) => {
         return isAuthenticated;
       })
     );
 
-    this.security.checkAuth().subscribe();
+    // this.security.checkAuth().subscribe(({ isAuthenticated }) => {
+    //   console.log(isAuthenticated);
+    //   this.isAuthenticated2 = isAuthenticated;
+    // });
   }
 
   login() {

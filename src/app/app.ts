@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
-import { Component, signal } from '@angular/core';
+import { Component } from '@angular/core';
+import { Title } from '@angular/platform-browser';
 import { RouterOutlet } from '@angular/router';
 import { AuthModule } from 'angular-auth-oidc-client';
 import { HeaderBanner } from './header-banner/header-banner';
@@ -11,5 +12,7 @@ import { HeaderBanner } from './header-banner/header-banner';
   styleUrl: './app.css',
 })
 export class App {
-  protected readonly title = signal('s3-helix-frontend');
+  constructor(title: Title) {
+    title.setTitle('Twitter Wish');
+  }
 }

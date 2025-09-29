@@ -1,17 +1,28 @@
-<header class="row justify-content-between align-items-center">
-	<div class="col">
-		<h1 style="margin: 0;">Twitter Wish</h1>
-	</div>
+<div style="width: 100%; margin: 0;">
 
-	<div class="col-2">
-		@if ( isAuthenticated$ | async ) {
-		<button type="button" class="btn btn-danger" (click)="logout()">Logout</button>
-		}
-		@else {
-		<button type="button" class="btn btn-primary" (click)="login()">Login</button>
-		}
-	</div>
+	<header style="
+        background-color: #333; /* Dark gray background */
+        color: white; /* White text */
+        padding: 10px 20px; /* Vertical and horizontal padding */
+        display: flex; /* Enable flexbox for alignment */
+        justify-content: space-between; /* Put space between the title and button */
+        align-items: center; /* Vertically center the items */
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+    ">
+		<div style="
+            font-size: 1.5em; /* Larger font size */
+            font-weight: bold; /* Bold text */
+        ">
+			Twitter Wish 🚀
+		</div>
 
-	<hr>
-
-</header>
+		<div style="width: fit-content;">
+			@if ( isAuthenticated$ | async; as isAuthenticated ) {
+			<button type="button" class="btn btn-danger" (click)="logout()">Logout</button>
+			}
+			@else {
+			<button type="button" class="btn btn-primary" (click)="login()">Login</button>
+			}
+		</div>
+	</header>
+</div>

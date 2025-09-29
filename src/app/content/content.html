@@ -1,1 +1,12 @@
 <p>content works!</p>
+
+
+@for (tweet of tweets; track $index) {
+<div class="card my-2">
+	<div class="card-body">
+		{{tweet}}
+	</div>
+</div>
+} @empty {
+<h6>There no tweets yet.</h6>
+}

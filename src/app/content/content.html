@@ -1,10 +1,10 @@
 <div class="row my-2">
-		<form [formGroup]="form" (ngSubmit)="onSubmit()">
-			<h6>Tweeter : </h6>
-			<textarea class="form-control" id="exampleFormControlTextarea1" rows="3" formControlName="text"
-				placeholder="Macron ..."></textarea>
-			<button type="submit" class="btn btn-success my-1" [disabled]="!form.valid">Send</button>
-		</form>
+	<form [formGroup]="form" (ngSubmit)="onSubmit()">
+		<h6>Tweeter : </h6>
+		<textarea class="form-control" id="exampleFormControlTextarea1" rows="3" formControlName="text"
+			placeholder="Macron ..."></textarea>
+		<button type="submit" class="btn btn-success my-1" [disabled]="!form.valid">Send</button>
+	</form>
 </div>
 <hr>
 <div class="row my-2">
@@ -12,6 +12,7 @@
 	<div class="card my-2">
 		<div class="card-body">
 			<h5 class="card-title"> {{tweet.sender}} </h5>
+			<h6 class="card-subtitle mb-2 text-body-secondary"> {{tweet.time}} </h6>
 			<p>{{tweet.text}}</p>
 		</div>
 	</div>

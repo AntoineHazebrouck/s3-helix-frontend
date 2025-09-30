@@ -13,8 +13,8 @@ export class Content {
     text: new FormControl(''),
   });
   protected readonly tweets: Tweet[] = [
-    new Tweet('Antoine HAZEBROUCK', 'Je fais caca'),
-    new Tweet('Axel ELIAS', 'Tu fais caca'),
+    new Tweet('Antoine HAZEBROUCK', 'Je fais caca', new Date(2025, 9, 24, 20, 0, 0, 0)),
+    new Tweet('Axel ELIAS', 'Tu fais caca', new Date(2025, 9, 24, 20, 0, 0, 0)),
   ];
 
   onSubmit() {

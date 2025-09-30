@@ -13,19 +13,17 @@ import { Content } from '../content/content';
 export class AuthContentHider {
   private readonly security = inject(OidcSecurityService);
 
-  // isAuthenticated$!: Observable<boolean>;
+  isAuthenticated$!: Observable<boolean>;
 
-  // ngOnInit(): void {
-  //   this.isAuthenticated$ = this.security.isAuthenticated$.pipe(
-  //     map(({ isAuthenticated }) => {
-  //       return isAuthenticated;
-  //     })
-  //   );
+  ngOnInit(): void {
+    this.isAuthenticated$ = this.security.isAuthenticated$.pipe(
+      map(({ isAuthenticated }) => {
+        return isAuthenticated;
+      })
+    );
+  }
 
-  //   this.security.checkAuth().subscribe();
-  // }
-
-  // login() {
-  //   this.security.authorize();
-  // }
+  login() {
+    this.security.authorize();
+  }
 }

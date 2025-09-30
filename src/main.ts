@@ -3,12 +3,14 @@
 import { provideHttpClient } from '@angular/common/http';
 import {
   ApplicationConfig,
+  inject,
+  provideAppInitializer,
   provideBrowserGlobalErrorListeners,
   provideZonelessChangeDetection,
 } from '@angular/core';
 import { bootstrapApplication } from '@angular/platform-browser';
 import { provideRouter } from '@angular/router';
-import { provideAuth } from 'angular-auth-oidc-client';
+import { OidcSecurityService, provideAuth } from 'angular-auth-oidc-client';
 import { App } from './app/app';
 
 const appConfig: ApplicationConfig = {
@@ -31,6 +33,10 @@ const appConfig: ApplicationConfig = {
       },
     }),
     provideHttpClient(),
+    provideAppInitializer(() => {
+      const security = inject(OidcSecurityService);
+      security.checkAuth().subscribe();
+    }),
   ],
 };
 

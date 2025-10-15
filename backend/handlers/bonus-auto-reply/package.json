@@ -1,0 +1,10 @@
+{
+  "name": "auto-reply-handler",
+  "version": "1.0.0",
+  "description": "Lambda function for auto-replies.",
+  "main": "handler.js",
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.577.0",
+    "@aws-sdk/lib-dynamodb": "^3.577.0"
+  }
+}

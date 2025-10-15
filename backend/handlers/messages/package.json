@@ -1,0 +1,10 @@
+{
+  "name": "messages-handler",
+  "version": "1.0.0",
+  "description": "Lambda functions to get and post messages.",
+  "main": "get-messages.js",
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.577.0",
+    "@aws-sdk/lib-dynamodb": "^3.577.0"
+  }
+}

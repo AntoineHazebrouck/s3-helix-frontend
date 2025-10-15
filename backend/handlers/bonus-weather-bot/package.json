@@ -1,0 +1,11 @@
+{
+  "name": "weather-bot-handler",
+  "version": "1.0.0",
+  "description": "Lambda function for the weather bot.",
+  "main": "handler.js",
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.577.0",
+    "@aws-sdk/lib-dynamodb": "^3.577.0",
+    "axios": "^1.7.2"
+  }
+}

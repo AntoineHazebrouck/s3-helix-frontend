@@ -10,7 +10,7 @@ Backend serverless pour l'application S3 Helix, construit avec AWS SAM (Serverle
 - [Déploiement](#déploiement)
 - [API Endpoints](#api-endpoints)
 - [Fonctions Lambda](#fonctions-lambda)
-- [Variables d'environnement](#variables-denvironnement)
+- [Variables d&#39;environnement](#variables-denvironnement)
 - [Tests locaux](#tests-locaux)
 - [Structure du projet](#structure-du-projet)
 
@@ -164,11 +164,13 @@ Une fois déployé, votre API sera accessible via l'URL fournie dans les outputs
 Récupère tous les messages.
 
 **Request:**
+
 ```bash
 curl https://YOUR-API-ID.execute-api.REGION.amazonaws.com/Prod/messages
 ```
 
 **Response:**
+
 ```json
 {
   "messages": [
@@ -188,6 +190,7 @@ curl https://YOUR-API-ID.execute-api.REGION.amazonaws.com/Prod/messages
 Crée un nouveau message.
 
 **Request:**
+
 ```bash
 curl -X POST https://YOUR-API-ID.execute-api.REGION.amazonaws.com/Prod/messages \
   -H "Content-Type: application/json" \
@@ -199,6 +202,7 @@ curl -X POST https://YOUR-API-ID.execute-api.REGION.amazonaws.com/Prod/messages 
 ```
 
 **Response:**
+
 ```json
 {
   "message": "Message posted successfully",
@@ -246,6 +250,7 @@ Bot météo qui détecte les questions sur la météo et répond avec les prévi
 **Permissions:** DynamoDBCrudPolicy
 
 **Variables d'environnement requises:**
+
 - `WEATHER_API_KEY` : Clé API pour le service météo (ex: OpenWeatherMap)
 
 ## 🔐 Variables d'environnement
@@ -354,6 +359,7 @@ sam logs -n GetMessagesFunction --stack-name s3-helix-backend --start-time '10mi
 ### CloudWatch Console
 
 Accédez aux logs dans la console AWS :
+
 1. AWS Console > CloudWatch > Log groups
 2. Rechercher `/aws/lambda/s3-helix-backend-*`
 
@@ -376,18 +382,21 @@ sam delete --stack-name s3-helix-backend
 ### Problèmes courants
 
 **1. Erreur de permissions**
+
 ```bash
 # Vérifier les policies IAM dans template.yaml
 # Assurez-vous que les fonctions ont les bonnes permissions
 ```
 
 **2. CORS errors**
+
 ```bash
 # Vérifier la configuration CORS dans template.yaml
 # Modifier CORS_ORIGIN dans les variables d'environnement
 ```
 
 **3. DynamoDB access denied**
+
 ```bash
 # Vérifier que MESSAGES_TABLE est bien passée en variable d'environnement
 # Vérifier les policies DynamoDB dans template.yaml
@@ -396,16 +405,17 @@ sam delete --stack-name s3-helix-backend
 ## 📝 Bonnes pratiques
 
 1. **Sécurité**
+
    - Ne jamais commiter les credentials AWS
    - Utiliser AWS Secrets Manager pour les clés API sensibles
    - Restreindre CORS en production (`CORS_ORIGIN: 'https://votre-domaine.com'`)
-
 2. **Performance**
+
    - Activer la mise en cache API Gateway pour réduire les coûts
    - Utiliser les indexes secondaires DynamoDB si nécessaire
    - Configurer les reserved concurrency pour les fonctions critiques
-
 3. **Coûts**
+
    - Utiliser le mode PAY_PER_REQUEST pour DynamoDB (petite échelle)
    - Monitorer les invocations Lambda via CloudWatch
    - Configurer des budgets AWS pour éviter les surprises
@@ -425,6 +435,7 @@ Ce projet est sous licence MIT.
 ## 👥 Auteurs
 
 - **Antoine Hazebrouck** - [AntoineHazebrouck](https://github.com/AntoineHazebrouck)
+- **Axel Elias** - [axel_lexa](https://github.com/axel-lexa)
 
 ## 🔗 Liens utiles
 

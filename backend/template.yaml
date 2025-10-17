@@ -1,0 +1,235 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: S3 Helix Backend - Serverless API for message management
+
+Globals:
+  Function:
+    Runtime: nodejs20.x
+    Timeout: 30
+    Environment:
+      Variables:
+        MESSAGES_TABLE: !Ref MessagesTable
+        CORS_ORIGIN: '*'
+
+Resources:
+  # API Gateway
+  HelixApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: Prod
+      Cors:
+        AllowMethods: "'GET,POST,OPTIONS'"
+        AllowHeaders: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+        AllowOrigin: "'*'"
+
+  # DynamoDB Table for Messages
+  MessagesTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: helix-messages
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+        - AttributeName: timestamp
+          AttributeType: N
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+        - AttributeName: timestamp
+          KeyType: RANGE
+      BillingMode: PAY_PER_REQUEST
+      StreamSpecification:
+        StreamViewType: NEW_AND_OLD_IMAGES
+
+  # Lambda Function: Get Messages
+  GetMessagesFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: handlers/messages/
+      Handler: get-messages.handler
+      Description: Retrieve messages from DynamoDB
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref MessagesTable
+      Events:
+        GetMessages:
+          Type: Api
+          Properties:
+            RestApiId: !Ref HelixApi
+            Path: /messages
+            Method: GET
+
+  # Lambda Function: Post Message
+  PostMessageFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: handlers/messages/
+      Handler: post-message.handler
+      Description: Post a new message to DynamoDB
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref MessagesTable
+      Events:
+        PostMessage:
+          Type: Api
+          Properties:
+            RestApiId: !Ref HelixApi
+            Path: /messages
+            Method: POST
+
+  # Lambda Function: Auto Reply Bot
+  AutoReplyFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: handlers/bonus-auto-reply/
+      Handler: handler.handler
+      Description: Automatically reply to messages
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref MessagesTable
+      Events:
+        MessageStream:
+          Type: DynamoDB
+          Properties:
+            Stream: !GetAtt MessagesTable.StreamArn
+            StartingPosition: LATEST
+            BatchSize: 10
+            MaximumBatchingWindowInSeconds: 1
+
+  # Lambda Function: Weather Bot
+  WeatherBotFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: handlers/bonus-weather-bot/
+      Handler: handler.handler
+      Description: Weather bot that responds to weather queries
+      Environment:
+        Variables:
+          WEATHER_API_KEY: '${WEATHER_API_KEY}'
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref MessagesTable
+      Events:
+        MessageStream:
+          Type: DynamoDB
+          Properties:
+            Stream: !GetAtt MessagesTable.StreamArn
+            StartingPosition: LATEST
+            BatchSize: 10
+            MaximumBatchingWindowInSeconds: 1
+
+  # S3 Bucket for Frontend Hosting
+  FrontendBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub '${AWS::StackName}-frontend'
+      WebsiteConfiguration:
+        IndexDocument: index.html
+        ErrorDocument: index.html
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: false
+        BlockPublicPolicy: false
+        IgnorePublicAcls: false
+        RestrictPublicBuckets: false
+
+  # S3 Bucket Policy for Public Read
+  FrontendBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref FrontendBucket
+      PolicyDocument:
+        Statement:
+          - Sid: PublicReadGetObject
+            Effect: Allow
+            Principal: '*'
+            Action: 's3:GetObject'
+            Resource: !Sub '${FrontendBucket.Arn}/*'
+
+  # CloudFront Distribution (Optional but recommended)
+  FrontendDistribution:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        Enabled: true
+        DefaultRootObject: index.html
+        Origins:
+          - Id: S3Origin
+            DomainName: !GetAtt FrontendBucket.RegionalDomainName
+            S3OriginConfig:
+              OriginAccessIdentity: ''
+        DefaultCacheBehavior:
+          TargetOriginId: S3Origin
+          ViewerProtocolPolicy: redirect-to-https
+          AllowedMethods:
+            - GET
+            - HEAD
+            - OPTIONS
+          CachedMethods:
+            - GET
+            - HEAD
+          ForwardedValues:
+            QueryString: false
+            Cookies:
+              Forward: none
+          Compress: true
+        CustomErrorResponses:
+          - ErrorCode: 404
+            ResponseCode: 200
+            ResponsePagePath: /index.html
+          - ErrorCode: 403
+            ResponseCode: 200
+            ResponsePagePath: /index.html
+        PriceClass: PriceClass_100
+
+Outputs:
+  # API Gateway URL
+  ApiUrl:
+    Description: API Gateway endpoint URL for Prod stage
+    Value: !Sub 'https://${HelixApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/'
+    Export:
+      Name: !Sub '${AWS::StackName}-ApiUrl'
+
+  # DynamoDB Table Name
+  MessagesTableName:
+    Description: DynamoDB table name for messages
+    Value: !Ref MessagesTable
+    Export:
+      Name: !Sub '${AWS::StackName}-MessagesTable'
+
+  # S3 Bucket Name
+  FrontendBucketName:
+    Description: S3 bucket name for frontend hosting
+    Value: !Ref FrontendBucket
+    Export:
+      Name: !Sub '${AWS::StackName}-FrontendBucket'
+
+  # S3 Bucket URL
+  FrontendBucketUrl:
+    Description: S3 bucket website URL
+    Value: !GetAtt FrontendBucket.WebsiteURL
+    Export:
+      Name: !Sub '${AWS::StackName}-FrontendBucketUrl'
+
+  # CloudFront Distribution URL
+  CloudFrontUrl:
+    Description: CloudFront distribution URL
+    Value: !GetAtt FrontendDistribution.DomainName
+    Export:
+      Name: !Sub '${AWS::StackName}-CloudFrontUrl'
+
+  # Lambda Function ARNs
+  GetMessagesFunctionArn:
+    Description: Get Messages Lambda Function ARN
+    Value: !GetAtt GetMessagesFunction.Arn
+
+  PostMessagesFunctionArn:
+    Description: Post Message Lambda Function ARN
+    Value: !GetAtt PostMessageFunction.Arn
+
+  AutoReplyFunctionArn:
+    Description: Auto Reply Lambda Function ARN
+    Value: !GetAtt AutoReplyFunction.Arn
+
+  WeatherBotFunctionArn:
+    Description: Weather Bot Lambda Function ARN
+    Value: !GetAtt WeatherBotFunction.Arn

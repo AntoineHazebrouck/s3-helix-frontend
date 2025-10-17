@@ -7,8 +7,6 @@ const client = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(client);
 
 exports.handler = async (event) => {
-    // Les informations de l'utilisateur sont dans `event.requestContext.authorizer`
-    // grâce à l'intégration Cognito/API Gateway.
     const username = event.requestContext.authorizer.claims.username;
     const { messageContent } = JSON.parse(event.body);
 
@@ -21,9 +19,9 @@ exports.handler = async (event) => {
 
     const item = {
         id: randomUUID(),
-        username: username, // Identité du posteur [cite: 147]
-        content: messageContent, // Contenu du message [cite: 148]
-        timestamp: Date.now() // Date du message [cite: 149]
+        username: username,
+        content: messageContent,
+        timestamp: Date.now()
     };
 
     const params = {

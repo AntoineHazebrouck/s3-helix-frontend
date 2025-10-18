@@ -1,5 +1,5 @@
 const { DynamoDBClient } = require("@aws-sdk/client-dynamodb");
-const { DynamoDBDocumentClient, QueryCommand } = require("@aws-sdk/lib-dynamodb");
+const { DynamoDBDocumentClient, ScanCommand } = require("@aws-sdk/lib-dynamodb");
 
 // Le nom de la table est passé via une variable d'environnement
 const TABLE_NAME = process.env.MESSAGES_TABLE;
@@ -7,26 +7,39 @@ const client = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(client);
 
 exports.handler = async (event) => {
-    // La spécification demande une pagination par 10 [cite: 140]
-    // On peut utiliser `limit` et `exclusiveStartKey` pour cela
-    
+    // La spécification demande une pagination par 10.
+    // Comme la table est en (id HASH, timestamp RANGE) et que l'on ne connaît pas l'id,
+    // on fait un Scan paginé puis on trie par timestamp côté application.
+    // Pour paginer, on peut passer un "ExclusiveStartKey" reçu d'un appel précédent.
+
+    const { lastKey } = event.queryStringParameters || {};
+    const exclusiveStartKey = lastKey ? JSON.parse(Buffer.from(lastKey, 'base64').toString('utf8')) : undefined;
+
     const params = {
         TableName: TABLE_NAME,
-        // ScanIndexForward: false trie par la clé de tri (timestamp) en ordre décroissant
-        ScanIndexForward: false, 
-        Limit: 10
+        Limit: 50, // on scanne un peu plus large pour pouvoir trier et couper à 10
+        ExclusiveStartKey: exclusiveStartKey
     };
 
     try {
-        const command = new QueryCommand(params);
+        const command = new ScanCommand(params);
         const data = await docClient.send(command);
-        
+
+        // Tri décroissant par timestamp
+        const sorted = (data.Items || []).sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+        const page = sorted.slice(0, 10);
+
+        // Préparation de la clé de pagination suivante si disponible
+        const nextKey = data.LastEvaluatedKey
+            ? Buffer.from(JSON.stringify(data.LastEvaluatedKey)).toString('base64')
+            : null;
+
         return {
             statusCode: 200,
             headers: {
                 "Access-Control-Allow-Origin": "*", // Important pour CORS
             },
-            body: JSON.stringify(data.Items),
+            body: JSON.stringify({ items: page, nextKey }),
         };
     } catch (error) {
         console.error(error);

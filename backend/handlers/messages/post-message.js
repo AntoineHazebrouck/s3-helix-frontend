@@ -7,12 +7,20 @@ const client = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(client);
 
 exports.handler = async (event) => {
-    const username = event.requestContext.authorizer.claims.username;
-    const { messageContent } = JSON.parse(event.body);
+    // Username peut venir d'un authorizer Cognito ou, à défaut, d'un header/appel manuel
+    const claimsUsername = event?.requestContext?.authorizer?.claims?.username;
+    const headers = Object.fromEntries(
+        Object.entries(event.headers || {}).map(([k, v]) => [k.toLowerCase(), v])
+    );
+    const body = event.body ? JSON.parse(event.body) : {};
+    const usernameHeader = headers["x-username"] || headers["username"];
+    const username = claimsUsername || body.username || usernameHeader || "Anonymous";
+    const { messageContent } = body;
 
     if (!messageContent) {
         return {
             statusCode: 400,
+            headers: { "Access-Control-Allow-Origin": "*" },
             body: JSON.stringify({ message: "Le contenu du message est requis." }),
         };
     }
@@ -44,6 +52,7 @@ exports.handler = async (event) => {
         console.error(error);
         return {
             statusCode: 500,
+            headers: { "Access-Control-Allow-Origin": "*" },
             body: JSON.stringify({ message: "Erreur lors de la publication du message." }),
         };
     }

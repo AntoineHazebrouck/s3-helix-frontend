@@ -1,54 +1,48 @@
 const { DynamoDBClient } = require("@aws-sdk/client-dynamodb");
 const { DynamoDBDocumentClient, PutCommand } = require("@aws-sdk/lib-dynamodb");
-const { randomUUID } = require("crypto");
+const { randomUUID } = require("node:crypto");
 
 const TABLE_NAME = process.env.MESSAGES_TABLE;
 const client = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(client);
 
+function buildAutoReply(messageContent, originalAuthor) {
+    if (messageContent.includes("bonjour")) {
+        return `Bonjour ${originalAuthor} ! J'espère que vous passez une bonne journée.`;
+    }
+    if (messageContent.includes("aide")) {
+        return `Bonjour ${originalAuthor}, avez-vous consulté notre documentation ?`;
+    }
+    return null;
+}
+
 exports.handler = async (event) => {
-    for (const record of event.Records) {
-        // On ne réagit qu'aux nouveaux messages (INSERT)
-        if (record.eventName === 'INSERT') {
-            const newMessage = record.dynamodb.NewImage;
-            const messageContent = newMessage.content.S.toLowerCase(); // Contenu du message en minuscule
-            const originalAuthor = newMessage.username.S;
+    for (const record of event.Records || []) {
+        if (record.eventName !== 'INSERT') continue;
 
-            // On évite que le bot se réponde à lui-même !
-            if (originalAuthor === 'AutoReplyBot') {
-                continue;
-            }
+        const newMessage = record.dynamodb.NewImage;
+        const messageContent = (newMessage?.content?.S || '').toLowerCase();
+        const originalAuthor = newMessage?.username?.S || '';
 
-            let replyContent = null;
+        // Évite les boucles entre bots
+        if (originalAuthor === 'AutoReplyBot' || originalAuthor === 'WeatherBot') continue;
 
-            // Analyse simple des mots-clés comme demandé [cite: 168]
-            if (messageContent.includes("bonjour")) {
-                replyContent = `Bonjour ${originalAuthor} ! J'espère que vous passez une bonne journée.`;
-            } else if (messageContent.includes("aide")) {
-                replyContent = `Bonjour ${originalAuthor}, avez-vous consulté notre documentation ?`;
-            }
+        const replyContent = buildAutoReply(messageContent, originalAuthor);
+        if (!replyContent) continue;
 
-            if (replyContent) {
-                const replyItem = {
-                    id: randomUUID(),
-                    username: "AutoReplyBot",
-                    content: replyContent,
-                    timestamp: Date.now() + 1, // On ajoute 1ms pour être sûr qu'il apparaisse après
-                };
+        const replyItem = {
+            id: randomUUID(),
+            username: "AutoReplyBot",
+            content: replyContent,
+            timestamp: Date.now() + 1,
+        };
 
-                const command = new PutCommand({
-                    TableName: TABLE_NAME,
-                    Item: replyItem,
-                });
-
-                try {
-                    await docClient.send(command);
-                    console.log(`Réponse automatique envoyée à ${originalAuthor}`);
-                } catch (error) {
-                    console.error("Erreur lors de l'envoi de la réponse auto :", error);
-                }
-            }
+        try {
+            await docClient.send(new PutCommand({ TableName: TABLE_NAME, Item: replyItem }));
+            console.log(`Réponse automatique envoyée à ${originalAuthor}`);
+        } catch (error) {
+            console.error("Erreur lors de l'envoi de la réponse auto :", error);
         }
     }
-    return `Processed ${event.Records.length} records.`;
+    return `Processed ${event.Records?.length || 0} records.`;
 };

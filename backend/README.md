@@ -435,7 +435,7 @@ Ce projet est sous licence MIT.
 ## 👥 Auteurs
 
 - **Antoine Hazebrouck** - [AntoineHazebrouck](https://github.com/AntoineHazebrouck)
-- **Axel Elias** - [axel_lexa](https://github.com/axel-lexa)
+- **Axel Elias** - [axel-lexa](https://github.com/axel-lexa)
 
 ## 🔗 Liens utiles
 

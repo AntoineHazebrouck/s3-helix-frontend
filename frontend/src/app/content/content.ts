@@ -64,6 +64,8 @@ export class Content implements OnInit {
         )
         .subscribe((response) => {
           console.log(response);
+
+          // TODO reload the messages
         });
     });
   }

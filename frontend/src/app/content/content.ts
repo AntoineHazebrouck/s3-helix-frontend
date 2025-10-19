@@ -1,4 +1,5 @@
-import { Component } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { Tweet } from '../../model/tweet';
 
@@ -7,17 +8,46 @@ import { Tweet } from '../../model/tweet';
   imports: [ReactiveFormsModule],
   templateUrl: './content.html',
   styleUrl: './content.css',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class Content {
+export class Content implements OnInit {
   form = new FormGroup({
     text: new FormControl(''),
   });
-  protected readonly tweets: Tweet[] = [
-    new Tweet('Antoine HAZEBROUCK', 'Je fais caca', new Date(2025, 9, 24, 20, 0, 0, 0)),
-    new Tweet('Axel ELIAS', 'Tu fais caca', new Date(2025, 9, 24, 20, 0, 0, 0)),
-  ];
+  public tweets: Tweet[] = [];
+
+  constructor(private readonly http: HttpClient, private readonly change: ChangeDetectorRef) {}
+
+  ngOnInit(): void {
+    this.http
+      .get('https://av70t4ose5.execute-api.eu-west-1.amazonaws.com/prod/message', {
+        responseType: 'text',
+      })
+      .subscribe({
+        next: (next) => {
+          const untyped: any = JSON.parse(next);
+
+          this.tweets = JSON.parse(untyped.body).items.map(
+            (item: any) =>
+              new Tweet(item['userName'], item['content'], item['timestamp_utc_iso8601'])
+          );
+          this.change.detectChanges();
+        },
+      });
+  }
 
   onSubmit() {
-    console.log(this.form.value.text);
+    // this.http.post<Tweet[]>('https://api.restful-api.dev/objects', this.form.value.text).subscribe({
+    //   next: (next) => {
+    //     this.tweets = next;
+    //   },
+    //   error(err) {
+    //     console.log(err);
+    //   },
+    //   complete() {
+    //     console.log('complete');
+    //   },
+    // });
+    // console.log(this.form.value.text);
   }
 }

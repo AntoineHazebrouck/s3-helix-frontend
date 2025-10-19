@@ -1,6 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { OidcSecurityService } from 'angular-auth-oidc-client';
 import { Tweet } from '../../model/tweet';
 
 @Component({
@@ -16,7 +17,11 @@ export class Content implements OnInit {
   });
   public tweets: Tweet[] = [];
 
-  constructor(private readonly http: HttpClient, private readonly change: ChangeDetectorRef) {}
+  constructor(
+    private readonly http: HttpClient,
+    private readonly change: ChangeDetectorRef,
+    private readonly security: OidcSecurityService
+  ) {}
 
   ngOnInit(): void {
     this.http
@@ -37,17 +42,22 @@ export class Content implements OnInit {
   }
 
   onSubmit() {
-    // this.http.post<Tweet[]>('https://api.restful-api.dev/objects', this.form.value.text).subscribe({
-    //   next: (next) => {
-    //     this.tweets = next;
-    //   },
-    //   error(err) {
-    //     console.log(err);
-    //   },
-    //   complete() {
-    //     console.log('complete');
-    //   },
-    // });
-    // console.log(this.form.value.text);
+    this.http
+      .post('https://av70t4ose5.execute-api.eu-west-1.amazonaws.com/prod/message', {
+        // author: this.security.userData().userData['email'], // TODO username should come from the server
+        messageContent: this.form.value.text,
+      })
+      .subscribe({
+        next: (next) => {
+          console.log(next);
+        },
+        error(err) {
+          console.log(err);
+        },
+        complete() {
+          console.log('complete');
+        },
+      });
+    console.log(this.form.value.text);
   }
 }

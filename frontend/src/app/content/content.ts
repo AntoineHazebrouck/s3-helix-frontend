@@ -1,5 +1,7 @@
-import { Component } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { OidcSecurityService } from 'angular-auth-oidc-client';
 import { Tweet } from '../../model/tweet';
 
 @Component({
@@ -7,17 +9,68 @@ import { Tweet } from '../../model/tweet';
   imports: [ReactiveFormsModule],
   templateUrl: './content.html',
   styleUrl: './content.css',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class Content {
+export class Content implements OnInit {
   form = new FormGroup({
     text: new FormControl(''),
   });
-  protected readonly tweets: Tweet[] = [
-    new Tweet('Antoine HAZEBROUCK', 'Je fais caca', new Date(2025, 9, 24, 20, 0, 0, 0)),
-    new Tweet('Axel ELIAS', 'Tu fais caca', new Date(2025, 9, 24, 20, 0, 0, 0)),
-  ];
+  public tweets: Tweet[] = [];
+
+  constructor(
+    private readonly http: HttpClient,
+    private readonly change: ChangeDetectorRef,
+    private readonly security: OidcSecurityService
+  ) {}
+
+  ngOnInit(): void {
+    this.authenticated((token) => {
+      this.http
+        .get('https://av70t4ose5.execute-api.eu-west-1.amazonaws.com/prod/message', {
+          responseType: 'text',
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        })
+        .subscribe((next) => {
+          const untyped: any = JSON.parse(next);
+
+          this.tweets = untyped.items
+            .map((item: any) => {
+              const username = item['username'] || item['userName'];
+              return new Tweet(username, item['content'], item['timestamp_utc_iso8601']);
+            })
+            .sort((left: Tweet, right: Tweet) => (left.time > right.time ? -1 : 1));
+          this.change.detectChanges();
+        });
+    });
+  }
 
   onSubmit() {
-    console.log(this.form.value.text);
+    this.authenticated((token) => {
+      console.log(token);
+
+      this.http
+        .post(
+          'https://av70t4ose5.execute-api.eu-west-1.amazonaws.com/prod/message',
+          {
+            messageContent: this.form.value.text,
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        )
+        .subscribe((response) => {
+          console.log(response);
+
+          // TODO reload the messages
+        });
+    });
+  }
+
+  authenticated(action: (token: string) => void) {
+    this.security.getIdToken().subscribe((token) => action(token));
   }
 }

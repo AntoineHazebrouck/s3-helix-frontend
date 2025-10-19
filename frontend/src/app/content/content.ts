@@ -15,7 +15,8 @@ export class Content implements OnInit {
   form = new FormGroup({
     text: new FormControl(''),
   });
-  public tweets: Tweet[] = [];
+  tweets: Tweet[] = [];
+  pagination?: string;
 
   constructor(
     private readonly http: HttpClient,
@@ -24,26 +25,7 @@ export class Content implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.authenticated((token) => {
-      this.http
-        .get('https://av70t4ose5.execute-api.eu-west-1.amazonaws.com/prod/message', {
-          responseType: 'text',
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        })
-        .subscribe((next) => {
-          const untyped: any = JSON.parse(next);
-
-          this.tweets = untyped.items
-            .map((item: any) => {
-              const username = item['username'] || item['userName'];
-              return new Tweet(username, item['content'], item['timestamp_utc_iso8601']);
-            })
-            .sort((left: Tweet, right: Tweet) => (left.time > right.time ? -1 : 1));
-          this.change.detectChanges();
-        });
-    });
+    this.loadTweets();
   }
 
   onSubmit() {
@@ -65,12 +47,60 @@ export class Content implements OnInit {
         .subscribe((response) => {
           console.log(response);
 
-          // TODO reload the messages
+          this.loadTweets();
+          // this.form.value.text = '';
         });
     });
   }
 
-  authenticated(action: (token: string) => void) {
+  authenticated(action: (token: string) => void): void {
     this.security.getIdToken().subscribe((token) => action(token));
+  }
+
+  loadTweets(pagination?: string): void {
+    this.authenticated((token) => {
+      this.http
+        .get(
+          `https://av70t4ose5.execute-api.eu-west-1.amazonaws.com/prod/message${
+            pagination ? '?lastKey=' + pagination : ''
+          }`,
+          {
+            responseType: 'text',
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        )
+        .subscribe((next) => {
+          const untyped: any = JSON.parse(next);
+
+          this.pagination = untyped.nextKey;
+
+          const newItems = untyped.items.map((item: any) => {
+            const username = item['username'] || item['userName'];
+            return new Tweet(username, item['content'], item['timestamp_utc_iso8601']);
+          });
+          // .sort((left: Tweet, right: Tweet) => (left.time > right.time ? -1 : 1));
+
+          console.log(pagination);
+          console.log(newItems);
+
+          if (pagination) this.tweets = this.tweets.concat(newItems);
+          else this.tweets = newItems;
+
+          this.change.detectChanges();
+
+          console.log('Reloaded tweets : ');
+          console.log(this.tweets);
+          console.log('Reloaded nextPage : ');
+          console.log(this.pagination);
+        });
+    });
+  }
+
+  loadNextTweets(): void {
+    if (!this.pagination) throw new Error('this.pagination is null');
+
+    this.loadTweets(this.pagination);
   }
 }

@@ -8,6 +8,11 @@
 </div>
 <hr>
 <div class="row my-2">
+	@if (tweets.length === 0) {
+	<h6>There no tweets yet.</h6>
+	}
+	@else {
+
 	@for (tweet of tweets; track $index) {
 	<div class="card my-2">
 		<div class="card-body">
@@ -16,7 +21,8 @@
 			<p>{{tweet.text}}</p>
 		</div>
 	</div>
-	} @empty {
-	<h6>There no tweets yet.</h6>
+	}
+	<button type="button" class="btn btn-primary" (click)="loadNextTweets()">Load next 10 tweets</button>
+
 	}
 </div>

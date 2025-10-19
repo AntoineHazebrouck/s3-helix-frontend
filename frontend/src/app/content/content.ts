@@ -24,12 +24,15 @@ export class Content implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.http
-      .get('https://av70t4ose5.execute-api.eu-west-1.amazonaws.com/prod/message', {
-        responseType: 'text',
-      })
-      .subscribe({
-        next: (next) => {
+    this.authenticated((token) => {
+      this.http
+        .get('https://av70t4ose5.execute-api.eu-west-1.amazonaws.com/prod/message', {
+          responseType: 'text',
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        })
+        .subscribe((next) => {
           const untyped: any = JSON.parse(next);
 
           this.tweets = JSON.parse(untyped.body).items.map(
@@ -37,27 +40,33 @@ export class Content implements OnInit {
               new Tweet(item['userName'], item['content'], item['timestamp_utc_iso8601'])
           );
           this.change.detectChanges();
-        },
-      });
+        });
+    });
   }
 
   onSubmit() {
-    this.http
-      .post('https://av70t4ose5.execute-api.eu-west-1.amazonaws.com/prod/message', {
-        // author: this.security.userData().userData['email'], // TODO username should come from the server
-        messageContent: this.form.value.text,
-      })
-      .subscribe({
-        next: (next) => {
-          console.log(next);
-        },
-        error(err) {
-          console.log(err);
-        },
-        complete() {
-          console.log('complete');
-        },
-      });
-    console.log(this.form.value.text);
+    this.authenticated((token) => {
+      console.log(token);
+
+      this.http
+        .post(
+          'https://av70t4ose5.execute-api.eu-west-1.amazonaws.com/prod/message',
+          {
+            messageContent: this.form.value.text,
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        )
+        .subscribe((response) => {
+          console.log(response);
+        });
+    });
+  }
+
+  authenticated(action: (token: string) => void) {
+    this.security.getIdToken().subscribe((token) => action(token));
   }
 }

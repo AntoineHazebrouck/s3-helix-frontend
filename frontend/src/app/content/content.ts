@@ -35,10 +35,12 @@ export class Content implements OnInit {
         .subscribe((next) => {
           const untyped: any = JSON.parse(next);
 
-          this.tweets = JSON.parse(untyped.body).items.map(
-            (item: any) =>
-              new Tweet(item['userName'], item['content'], item['timestamp_utc_iso8601'])
-          );
+          this.tweets = JSON.parse(untyped.body)
+            .items.map(
+              (item: any) =>
+                new Tweet(item['userName'], item['content'], item['timestamp_utc_iso8601'])
+            )
+            .sort((left: Tweet, right: Tweet) => (left.time > right.time ? -1 : 1));
           this.change.detectChanges();
         });
     });

@@ -35,8 +35,8 @@ export class Content implements OnInit {
         .subscribe((next) => {
           const untyped: any = JSON.parse(next);
 
-          this.tweets = JSON.parse(untyped.body)
-            .items.map(
+          this.tweets = untyped.items
+            .map(
               (item: any) =>
                 new Tweet(item['userName'], item['content'], item['timestamp_utc_iso8601'])
             )

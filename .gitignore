@@ -2,6 +2,7 @@
 
 frontend/.angular
 frontend/node_modules
+frontend/dist
 
 # Compiled output
 /dist

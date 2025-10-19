@@ -1,8 +1,8 @@
 const { DynamoDBClient } = require("@aws-sdk/client-dynamodb");
 const { DynamoDBDocumentClient, ScanCommand } = require("@aws-sdk/lib-dynamodb");
 
-// Le nom de la table est passé via une variable d'environnement
-const TABLE_NAME = process.env.MESSAGES_TABLE;
+// Le nom de la table est maintenant défini directement dans le code.
+const TABLE_NAME = "dynamodb-all-messages";
 const client = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(client);
 
@@ -12,21 +12,33 @@ exports.handler = async (event) => {
     // on fait un Scan paginé puis on trie par timestamp côté application.
     // Pour paginer, on peut passer un "ExclusiveStartKey" reçu d'un appel précédent.
 
+    console.log();
+    
     const { lastKey } = event.queryStringParameters || {};
     const exclusiveStartKey = lastKey ? JSON.parse(Buffer.from(lastKey, 'base64').toString('utf8')) : undefined;
 
     const params = {
         TableName: TABLE_NAME,
-        Limit: 50, // on scanne un peu plus large pour pouvoir trier et couper à 10
-        ExclusiveStartKey: exclusiveStartKey
+        Limit: 10, // on scanne un peu plus large pour pouvoir trier et couper à 10
+        ExclusiveStartKey: exclusiveStartKey,
+        FilterExpression: "channel_id = :channel",
+        ExpressionAttributeValues: {
+            ":channel": "helix"
+        }
     };
 
     try {
         const command = new ScanCommand(params);
         const data = await docClient.send(command);
 
+        console.log(data);
+        
+
         // Tri décroissant par timestamp
-        const sorted = (data.Items || []).sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+        const sorted = (data.Items || []).sort((a, b) => b.timestamp_utc_iso8601 - a.timestamp_utc_iso8601);
+
+        console.log(sorted);
+        
         const page = sorted.slice(0, 10);
 
         // Préparation de la clé de pagination suivante si disponible

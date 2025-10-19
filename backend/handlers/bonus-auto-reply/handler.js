@@ -2,7 +2,7 @@ const { DynamoDBClient } = require("@aws-sdk/client-dynamodb");
 const { DynamoDBDocumentClient, PutCommand } = require("@aws-sdk/lib-dynamodb");
 const { randomUUID } = require("node:crypto");
 
-const TABLE_NAME = process.env.MESSAGES_TABLE;
+const TABLE_NAME = "dynamodb-all-messages";
 const client = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(client);
 

@@ -36,10 +36,10 @@ export class Content implements OnInit {
           const untyped: any = JSON.parse(next);
 
           this.tweets = untyped.items
-            .map(
-              (item: any) =>
-                new Tweet(item['userName'], item['content'], item['timestamp_utc_iso8601'])
-            )
+            .map((item: any) => {
+              const username = item['username'] || item['userName'];
+              return new Tweet(username, item['content'], item['timestamp_utc_iso8601']);
+            })
             .sort((left: Tweet, right: Tweet) => (left.time > right.time ? -1 : 1));
           this.change.detectChanges();
         });

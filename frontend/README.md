@@ -1,10 +1,10 @@
 # S3HelixFrontend
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 20.3.3.
-
 ## Production environment
 
+The website is available through a CloudFront CDN (https://us-east-1.console.aws.amazon.com/cloudfront/v4/home?region=eu-west-1#/distributions/E2L147YFWJPY8) pointing to an S3 Bucket (https://eu-west-1.console.aws.amazon.com/s3/buckets/s3-helix-frontend?region=eu-west-1&tab=objects&bucketType=general).
 
+Production website : [https://d3g61e6x4dzhq2.cloudfront.net/](https://d3g61e6x4dzhq2.cloudfront.net/)
 
 ## Development server
 
